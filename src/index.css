@@ -1,0 +1,139 @@
+:root {
+  --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  --color-bg-dark: #111111;
+  --color-bg-light: #ffffff;
+  --color-text-dark: #eaeaea;
+  --color-text-light: #111111;
+
+  --color-accent: #0071e3; /* Apple blue */
+  --color-accent-hover: #005bb5;
+
+  --transition-speed: 0.3s ease;
+
+  font-family: var(--font-main);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  color-scheme: light dark;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-dark);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-bg-dark);
+  color: var(--color-text-dark);
+  transition: background var(--transition-speed), color var(--transition-speed);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  margin: 0.5em 0;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 3rem;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+/* Links */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--transition-speed);
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* Buttons */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7em 1.6em;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 9999px; /* pill style */
+  cursor: pointer;
+  transition: background var(--transition-speed), transform 0.2s ease;
+}
+
+button:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.4);
+}
+
+/* Containers */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 2rem 0;
+}
+
+/* Subtle card style */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  transition: transform var(--transition-speed);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Light mode override */
+@media (prefers-color-scheme: light) {
+  :root {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-light);
+  }
+
+  body {
+    background: var(--color-bg-light);
+    color: var(--color-text-light);
+  }
+
+  .card {
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+
+  button {
+    background: var(--color-accent);
+    color: #fff;
+  }
+}
