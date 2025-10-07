@@ -1,0 +1,66 @@
+type User @table {
+  username: String!
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  profilePictureURL: String
+  totalPoints: Int
+}
+
+type Category @table {
+  user: User!
+  name: String!
+  createdAt: Timestamp!
+  description: String
+  icon: String
+}
+
+type Goal @table {
+  user: User!
+  category: Category
+  title: String!
+  startDate: Date!
+  targetDate: Date!
+  createdAt: Timestamp!
+  description: String
+  targetValue: Float
+  currentValue: Float
+  status: String
+}
+
+type Habit @table {
+  user: User!
+  category: Category
+  name: String!
+  frequency: String!
+  startDate: Date!
+  createdAt: Timestamp!
+  description: String
+  reminderTime: String
+  pointsPerCompletion: Int
+}
+
+type ProgressEntry @table {
+  user: User!
+  goal: Goal
+  habit: Habit
+  entryDate: Date!
+  createdAt: Timestamp!
+  value: Float
+  notes: String
+  isCompleted: Boolean
+}
+
+type Achievement @table {
+  name: String!
+  criteria: String!
+  pointsAwarded: Int!
+  description: String
+  iconURL: String
+}
+
+type UserAchievement @table(key: ["user", "achievement"]) {
+  user: User!
+  achievement: Achievement!
+  unlockedAt: Timestamp!
+}

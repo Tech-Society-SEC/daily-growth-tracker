@@ -1,0 +1,30 @@
+mutation SeedDatabase @auth(level: USER) {
+  user_upsertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      username: "bobuser",
+      email: "bob@example.com",
+      createdAt: "2024-01-01T00:00:00Z"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      username: "aliceuser",
+      email: "alice@example.com",
+      createdAt: "2024-01-02T00:00:00Z"
+    }
+  ])
+  category_upsertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440000",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      name: "Health",
+      createdAt: "2024-01-03T00:00:00Z"
+    },
+    {
+      id: "650e8400-e29b-41d4-a716-446655440001",
+      userId: "550e8400-e29b-41d4-a716-446655440001",
+      name: "Finance",
+      createdAt: "2024-01-04T00:00:00Z"
+    }
+  ])
+}

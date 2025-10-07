@@ -1,0 +1,43 @@
+mutation CreateNewGoal($title: String!, $description: String, $targetValue: Float!, $startDate: Date!, $targetDate: Date!, $categoryId: UUID) @auth(level: USER) {
+  goal_insert(data: {
+    title: $title,
+    description: $description,
+    targetValue: $targetValue,
+    startDate: $startDate,
+    targetDate: $targetDate,
+    userId_expr: "auth.uid",
+    categoryId: $categoryId
+  })
+}
+
+query GetGoalsForUser @auth(level: USER) {
+  goals(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    title
+    description
+    targetValue
+    startDate
+    targetDate
+    currentValue
+    status
+    category {
+      id
+      name
+    }
+  }
+}
+
+mutation UpdateProgress($goalId: UUID!, $value: Float!, $isCompleted: Boolean, $notes: String, $entryDate: Date!) @auth(level: USER) {
+  progressEntry_insert(data: {
+    goalId: $goalId,
+    userId_expr: "auth.uid",
+    value: $value,
+    isCompleted: $isCompleted,
+    notes: $notes,
+    entryDate: $entryDate
+  })
+}
+
+mutation DeleteGoal($id: UUID!) @auth(level: USER) {
+  goal_delete(key: {id: $id})
+}

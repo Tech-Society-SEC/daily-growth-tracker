@@ -1,157 +1,424 @@
 // src/AdventureMap.jsx
-import React from "react";
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { FiTarget, FiStar, FiZap, FiAward } from "react-icons/fi"; // Added FiAward for more options
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { 
+  FiTarget, FiStar, FiZap, FiAward, FiTrendingUp, 
+  FiShoppingBag, FiUsers, FiPlay 
+} from "react-icons/fi";
 
-// A decorative component for the floating nodes on the map
-const MapNode = ({ className, delay }) => (
+// Parallax Star Component
+const Star = ({ size, top, left, duration }) => (
   <motion.div
-    className={`absolute w-5 h-5 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-full shadow-lg shadow-yellow-400/60 ${className}`}
-    initial={{ opacity: 0, scale: 0.5 }}
-    animate={{ opacity: [0, 1, 0], scale: 1 }}
-    transition={{ duration: 5, repeat: Infinity, delay, ease: "easeInOut" }}
+    className="absolute rounded-full bg-white"
+    style={{
+      width: size,
+      height: size,
+      top: `${top}%`,
+      left: `${left}%`,
+    }}
+    animate={{
+      opacity: [0.2, 1, 0.2],
+      scale: [1, 1.2, 1],
+    }}
+    transition={{
+      duration: duration,
+      repeat: Infinity,
+      ease: "easeInOut",
+    }}
   />
 );
 
-// A decorative component for the shimmering gems
-const ShimmeringGem = ({ className, delay }) => (
-  <motion.div
-    className={`absolute w-3 h-3 bg-gradient-to-br from-purple-300 to-indigo-500 rounded-full shadow-lg shadow-purple-400/50 transform rotate-45 ${className}`}
-    initial={{ opacity: 0, scale: 0.7 }}
-    animate={{ opacity: [0, 0.8, 0], scale: [0.7, 1.2, 0.7] }}
-    transition={{ duration: 6, repeat: Infinity, delay, ease: "easeInOut" }}
-  />
-);
+// Interactive Checkpoint Component
+const Checkpoint = ({ checkpoint, index, onClick }) => {
+  const [isHovered, setIsHovered] = useState(false);
 
+  return (
+    <motion.div
+      className="absolute cursor-pointer group"
+      style={{
+        top: checkpoint.position.top,
+        left: checkpoint.position.left,
+      }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.2, duration: 0.5 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      onClick={() => onClick(checkpoint.route)}
+    >
+      {/* Glow Effect */}
+      <motion.div
+        className="absolute inset-0 rounded-full blur-xl"
+        style={{ background: checkpoint.color }}
+        animate={{
+          opacity: isHovered ? 0.6 : 0.3,
+          scale: isHovered ? 1.5 : 1,
+        }}
+        transition={{ duration: 0.3 }}
+      />
+
+      {/* Checkpoint Node */}
+      <motion.div
+        className="relative w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center border-4 border-white/30 backdrop-blur-sm"
+        style={{
+          background: `linear-gradient(135deg, ${checkpoint.color}, ${checkpoint.colorSecondary})`,
+          boxShadow: `0 0 30px ${checkpoint.color}`,
+        }}
+        whileHover={{ scale: 1.2, rotate: 360 }}
+        transition={{ duration: 0.5 }}
+      >
+        <checkpoint.icon className="text-white text-2xl md:text-3xl" />
+      </motion.div>
+
+      {/* Tooltip */}
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 bg-black/90 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20 whitespace-nowrap"
+          >
+            <p className="text-white font-bold text-sm">{checkpoint.title}</p>
+            <p className="text-gray-300 text-xs">{checkpoint.description}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Connecting Line to Next Checkpoint */}
+      {checkpoint.nextPosition && (
+        <svg
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          style={{ overflow: 'visible' }}
+        >
+          <motion.line
+            x1="50%"
+            y1="50%"
+            x2={checkpoint.nextPosition.x}
+            y2={checkpoint.nextPosition.y}
+            stroke={checkpoint.color}
+            strokeWidth="2"
+            strokeDasharray="5,5"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.4 }}
+            transition={{ delay: index * 0.2 + 0.5, duration: 1 }}
+          />
+        </svg>
+      )}
+    </motion.div>
+  );
+};
 
 function AdventureMap() {
-  // Animation variants for staggering child animations
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
+  const navigate = useNavigate();
+  const [stars, setStars] = useState([]);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Define interactive checkpoints
+  const checkpoints = [
+    {
+      id: 1,
+      title: "Training Grounds",
+      description: "Start your journey",
+      icon: FiTarget,
+      color: "#22c55e",
+      colorSecondary: "#16a34a",
+      position: { top: "20%", left: "15%" },
+      route: "/game",
+    },
+    {
+      id: 2,
+      title: "Level Progression",
+      description: "Track your growth",
+      icon: FiTrendingUp,
+      color: "#a855f7",
+      colorSecondary: "#7c3aed",
+      position: { top: "35%", left: "35%" },
+      route: "/levels",
+    },
+    {
+      id: 3,
+      title: "Hall of Legends",
+      description: "View rankings",
+      icon: FiAward,
+      color: "#fbbf24",
+      colorSecondary: "#f59e0b",
+      position: { top: "50%", left: "50%" },
+      route: "/leaderboard",
+    },
+    {
+      id: 4,
+      title: "Cosmic Arena",
+      description: "Test your skills",
+      icon: FiPlay,
+      color: "#ec4899",
+      colorSecondary: "#db2777",
+      position: { top: "35%", left: "65%" },
+      route: "/game",
+    },
+    {
+      id: 5,
+      title: "AI Oracle",
+      description: "Seek guidance",
+      icon: FiZap,
+      color: "#06b6d4",
+      colorSecondary: "#0891b2",
+      position: { top: "65%", left: "30%" },
+      route: "/ai-assistant",
+    },
+    {
+      id: 6,
+      title: "Treasure Vault",
+      description: "Collect rewards",
+      icon: FiStar,
+      color: "#f59e0b",
+      colorSecondary: "#d97706",
+      position: { top: "70%", left: "70%" },
+      route: "/profile",
+    },
+  ];
+
+  // Generate random stars for parallax effect
+  useEffect(() => {
+    const generatedStars = Array.from({ length: 100 }, (_, i) => ({
+      id: i,
+      size: Math.random() * 3 + 1,
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      duration: Math.random() * 3 + 2,
+    }));
+    setStars(generatedStars);
+  }, []);
+
+  // Track mouse position for parallax
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth - 0.5) * 20,
+        y: (e.clientY / window.innerHeight - 0.5) * 20,
+      });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  const handleCheckpointClick = (route) => {
+    navigate(route);
+  };
+
+  // Animation variants
+  const titleVariants = {
+    hidden: { opacity: 0, y: -50 },
     visible: {
       opacity: 1,
-      scale: 1,
+      y: 0,
       transition: {
-        staggerChildren: 0.2, // Each child will animate 0.2s after the previous one
-        duration: 0.7, // Slightly longer duration for a majestic feel
+        duration: 1,
         ease: "easeOut",
       },
     },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 },
+  const subtitleVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delay: 0.5,
+        duration: 1,
+      },
+    },
   };
 
   return (
-    // Majestic background gradient with "stardust" particle effect
-    <div className="h-screen w-full flex items-center justify-center relative overflow-hidden text-white font-serif
-                    bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-800
-                    bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"> {/* Stardust texture */}
-      
-      {/* Floating Glow Background (majestic colors) */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute w-96 h-96 bg-fuchsia-400 opacity-20 blur-3xl rounded-full -top-20 -left-40 animate-pulse-slow" />
-        <div className="absolute w-[400px] h-[400px] bg-amber-400 opacity-15 blur-3xl rounded-full -bottom-20 -right-40 animate-pulse-slow" />
-        <div className="absolute w-80 h-80 bg-blue-400 opacity-15 blur-3xl rounded-full top-1/4 right-1/4 animate-pulse-slow" />
-        <div className="absolute w-72 h-72 bg-purple-500 opacity-20 blur-3xl rounded-full bottom-1/3 left-1/4 animate-pulse-slow" />
-      </div>
+    <div className="h-screen w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Google Font Import */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet"
+      />
 
-      {/* Decorative floating map nodes (golden) */}
-      <MapNode className="top-[15%] left-[10%]" delay={0} />
-      <MapNode className="top-[45%] left-[25%]" delay={1} />
-      <MapNode className="top-[80%] left-[5%]" delay={2} />
-      <MapNode className="top-[20%] right-[20%]" delay={0.5} />
-      <MapNode className="top-[70%] right-[10%]" delay={1.5} />
-      
-      {/* NEW: Decorative shimmering gems (purple/indigo) */}
-      <ShimmeringGem className="top-[30%] left-[5%]" delay={0.2} />
-      <ShimmeringGem className="top-[60%] left-[15%]" delay={1.2} />
-      <ShimmeringGem className="top-[10%] right-[10%]" delay={0.7} />
-      <ShimmeringGem className="top-[50%] right-[25%]" delay={1.7} />
-
-
-      {/* Center Content Card with enhanced Glassmorphism Effect */}
+      {/* Parallax Starfield Background */}
       <motion.div
-        className="relative z-10 text-center max-w-2xl w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-3xl p-12 mx-4 transform-gpu" // Added transform-gpu for better performance
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
+        className="absolute inset-0 z-0"
+        style={{
+          x: mousePosition.x,
+          y: mousePosition.y,
+        }}
+        transition={{ type: "spring", stiffness: 50 }}
       >
-        <motion.h1
-          className="text-6xl md:text-7xl font-extrabold mb-5 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-300 to-purple-300 drop-shadow-lg"
-          variants={itemVariants}
-        >
-          ✨ Cosmic Journey Map
-        </motion.h1>
-
-        <motion.p
-          className="text-lg md:text-xl mb-10 text-gray-200 max-w-md mx-auto leading-relaxed"
-          variants={itemVariants}
-        >
-          Embark on an epic quest through mystical lands. Gather ancient artifacts, overcome formidable guardians, and forge your legend!
-        </motion.p>
-        
-        {/* Mission details section */}
-        <motion.div
-          className="my-10 text-left bg-white/5 p-7 rounded-2xl border border-white/15 shadow-inner"
-          variants={itemVariants}
-        >
-          <h3 className="text-2xl font-bold mb-5 text-center text-amber-300">Your Galactic Mandate</h3>
-          <ul className="space-y-4 text-gray-100">
-            <li className="flex items-center text-lg">
-              <FiTarget className="mr-4 text-fuchsia-300" size={26} />
-              Chart unknown constellations and discover new worlds.
-            </li>
-            <li className="flex items-center text-lg">
-              <FiStar className="mr-4 text-fuchsia-300" size={26} />
-              Collect cosmic shards to unlock legendary powers.
-            </li>
-            <li className="flex items-center text-lg">
-              <FiZap className="mr-4 text-fuchsia-300" size={26} />
-              Navigate perilous nebulae and outwit cosmic foes.
-            </li>
-            <li className="flex items-center text-lg">
-              <FiAward className="mr-4 text-fuchsia-300" size={26} /> {/* New icon */}
-              Claim your rightful place among the celestial heroes.
-            </li>
-          </ul>
-        </motion.div>
-
-        {/* Start Button */}
-        <motion.div variants={itemVariants}>
-          <Link to="/game">
-            <motion.button
-              whileHover={{ scale: 1.1, boxShadow: "0 0 40px rgba(255, 200, 0, 0.8)", transition: { duration: 0.3 } }}
-              whileTap={{ scale: 0.95 }}
-              className="px-12 py-5 text-xl font-bold rounded-full bg-gradient-to-r from-gold-400 via-amber-500 to-red-600 hover:from-red-600 hover:to-gold-400 text-white shadow-xl transition-all duration-400 tracking-wider transform hover:-translate-y-1" // Added transform for subtle lift
-              style={{
-                // Custom gradient for a richer gold button
-                backgroundImage: 'linear-gradient(to right, #FFD700, #FFA500, #FF8C00)', // Gold, Orange, Dark Orange
-              }}
-            >
-              Begin Your Cosmic Quest ✨
-            </motion.button>
-          </Link>
-        </motion.div>
+        {stars.map((star) => (
+          <Star
+            key={star.id}
+            size={star.size}
+            top={star.top}
+            left={star.left}
+            duration={star.duration}
+          />
+        ))}
       </motion.div>
 
-      {/* Tailwind CSS for custom pulse animation for the glows */}
+      {/* Animated Nebula Clouds */}
+      <div className="absolute inset-0 z-0">
+        <motion.div
+          className="absolute w-[600px] h-[600px] bg-purple-500/20 blur-3xl rounded-full"
+          style={{ top: "10%", left: "10%" }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.3, 0.2],
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute w-[500px] h-[500px] bg-cyan-500/20 blur-3xl rounded-full"
+          style={{ bottom: "10%", right: "10%" }}
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute w-[400px] h-[400px] bg-pink-500/20 blur-3xl rounded-full"
+          style={{ top: "50%", left: "50%" }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.15, 0.25, 0.15],
+          }}
+          transition={{ duration: 12, repeat: Infinity }}
+        />
+      </div>
+
+      {/* Interactive Checkpoints */}
+      <div className="absolute inset-0 z-10">
+        {checkpoints.map((checkpoint, index) => (
+          <Checkpoint
+            key={checkpoint.id}
+            checkpoint={checkpoint}
+            index={index}
+            onClick={handleCheckpointClick}
+          />
+        ))}
+      </div>
+
+
+      {/* Center Title and Instructions */}
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none px-4">
+        {/* Animated Title */}
+        <motion.h1
+          className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 tracking-wider text-center"
+          style={{
+            fontFamily: "'Orbitron', sans-serif",
+            textShadow: "0 0 20px rgba(139, 92, 246, 0.8), 0 0 40px rgba(139, 92, 246, 0.5)",
+          }}
+          variants={titleVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 animate-gradient">
+            COSMIC ODYSSEY
+          </span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          className="text-lg md:text-2xl text-cyan-300 mb-12 text-center max-w-2xl"
+          style={{
+            fontFamily: "'Orbitron', sans-serif",
+            textShadow: "0 0 10px rgba(34, 211, 238, 0.6)",
+          }}
+          variants={subtitleVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          Navigate the stars • Complete missions • Ascend to legend
+        </motion.p>
+
+        {/* Instructions Card */}
+        <motion.div
+          className="bg-black/40 backdrop-blur-xl border-2 border-cyan-500/30 rounded-2xl p-6 md:p-8 max-w-md pointer-events-auto"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.8 }}
+        >
+          <h3
+            className="text-2xl font-bold mb-4 text-center text-cyan-300"
+            style={{ fontFamily: "'Orbitron', sans-serif" }}
+          >
+            Mission Control
+          </h3>
+          <p className="text-gray-300 text-center mb-6">
+            Click on any checkpoint to begin your journey through the cosmos
+          </p>
+
+          {/* Legend */}
+          <div className="space-y-3 text-sm">
+            {checkpoints.slice(0, 3).map((cp) => (
+              <div key={cp.id} className="flex items-center gap-3">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{
+                    background: `linear-gradient(135deg, ${cp.color}, ${cp.colorSecondary})`,
+                    boxShadow: `0 0 15px ${cp.color}`,
+                  }}
+                >
+                  <cp.icon className="text-white text-sm" />
+                </div>
+                <span className="text-gray-200">{cp.title}</span>
+              </div>
+            ))}
+            <p className="text-gray-400 text-xs text-center mt-4">
+              ...and {checkpoints.length - 3} more destinations
+            </p>
+          </div>
+
+          {/* CTA Button */}
+          <motion.button
+            onClick={() => navigate("/dashboard")}
+            className="mt-6 w-full py-3 rounded-xl font-bold text-white relative overflow-hidden pointer-events-auto"
+            style={{
+              fontFamily: "'Orbitron', sans-serif",
+              background: "linear-gradient(135deg, #a855f7, #06b6d4)",
+            }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 30px rgba(168, 85, 247, 0.8)",
+            }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              animate={{
+                x: ["-100%", "200%"],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+            <span className="relative z-10">Return to Dashboard</span>
+          </motion.button>
+        </motion.div>
+      </div>
+
+      {/* Custom Animations */}
       <style>{`
-        @keyframes pulse-slow {
+        @keyframes gradient {
           0%, 100% {
-            transform: scale(1);
-            opacity: 0.2;
+            background-position: 0% 50%;
           }
           50% {
-            transform: scale(1.1);
-            opacity: 0.3;
+            background-position: 100% 50%;
           }
         }
-        .animate-pulse-slow {
-          animation: pulse-slow 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 3s ease infinite;
+        }
+        * {
+          font-family: 'Orbitron', sans-serif;
         }
       `}</style>
     </div>
