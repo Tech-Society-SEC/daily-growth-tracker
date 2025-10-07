@@ -300,105 +300,32 @@ function App() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
-          color: "#f1f5f9",
-          fontFamily: "'Inter', 'Segoe UI', sans-serif",
-          position: "relative",
-          overflow: "hidden",
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+          color: "#fff",
+          fontFamily: "Segoe UI, sans-serif",
         }}
       >
-        {/* Animated Background Orbs */}
-        <div style={{
-          position: "absolute",
-          top: "20%",
-          left: "10%",
-          width: "200px",
-          height: "200px",
-          background: "radial-gradient(circle, rgba(96, 165, 250, 0.1) 0%, transparent 70%)",
-          borderRadius: "50%",
-          animation: "float 6s ease-in-out infinite",
-        }} />
-        <div style={{
-          position: "absolute",
-          top: "60%",
-          right: "15%",
-          width: "150px",
-          height: "150px",
-          background: "radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%)",
-          borderRadius: "50%",
-          animation: "float 8s ease-in-out infinite reverse",
-        }} />
-        <div style={{
-          position: "absolute",
-          bottom: "30%",
-          left: "20%",
-          width: "100px",
-          height: "100px",
-          background: "radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%)",
-          borderRadius: "50%",
-          animation: "float 7s ease-in-out infinite",
-        }} />
-
         <style>
           {`
             @keyframes spin {
               0% { transform: rotate(0deg); }
               100% { transform: rotate(360deg); }
             }
-            @keyframes pulse {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.5; }
-            }
-            @keyframes float {
-              0%, 100% { transform: translateY(0px) scale(1); }
-              50% { transform: translateY(-20px) scale(1.1); }
-            }
           `}
         </style>
-        <div style={{
-          textAlign: "center",
-          position: "relative",
-          zIndex: 2,
-          background: "rgba(255, 255, 255, 0.02)",
-          backdropFilter: "blur(10px)",
-          borderRadius: "20px",
-          padding: "40px",
-          border: "1px solid rgba(96, 165, 250, 0.1)",
-        }}>
+        <div style={{ textAlign: "center" }}>
           <div
             style={{
-              width: "60px",
-              height: "60px",
-              border: "4px solid rgba(96, 165, 250, 0.2)",
-              borderTop: "4px solid #60a5fa",
+              width: "50px",
+              height: "50px",
+              border: "3px solid rgba(255,255,255,0.3)",
+              borderTop: "3px solid #fff",
               borderRadius: "50%",
               margin: "0 auto 20px",
               animation: "spin 1s linear infinite",
             }}
           ></div>
-          <motion.p
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              fontSize: "1.1rem",
-              color: "#60a5fa",
-              fontWeight: "500",
-              marginBottom: "10px",
-            }}
-          >
-            Loading your growth journey...
-          </motion.p>
-          <motion.div
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              height: "2px",
-              background: "linear-gradient(90deg, transparent, #60a5fa, transparent)",
-              borderRadius: "1px",
-              width: "200px",
-              margin: "0 auto",
-            }}
-          />
+          <p>Loading your growth journey...</p>
         </div>
       </div>
     );
@@ -422,10 +349,9 @@ function App() {
             padding: "16px 40px",
             marginBottom: "20px",
             backdropFilter: "blur(20px) saturate(180%)",
-            background: "rgba(15, 23, 42, 0.95)",
+            background: "rgba(255, 255, 255, 0.9)",
             borderRadius: "18px",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-            border: "1px solid rgba(96, 165, 250, 0.2)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
           }}
         >
           {[
@@ -437,57 +363,36 @@ function App() {
             { to: "/game", label: "🎮 Game" },
             { to: "/ai-assistant", label: "🤖 AI" },
           ].map((link) => (
-            <motion.div
-              key={link.to}
-              whileHover={{
-                scale: 1.15,
-                y: -2,
-                boxShadow: "0 4px 15px rgba(96, 165, 250, 0.3)"
-              }}
-              whileTap={{ scale: 0.9 }}
-            >
+            <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} key={link.to}>
               <Link
                 to={link.to}
                 style={{
                   fontWeight: 600,
-                  color: "#f1f5f9",
+                  color: "#1d1d1f",
                   textDecoration: "none",
                   fontSize: "1rem",
                   transition: "color 0.3s ease",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  position: "relative",
                 }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#60a5fa";
-                  e.target.style.background = "rgba(96, 165, 250, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "#f1f5f9";
-                  e.target.style.background = "transparent";
-                }}
+                onMouseEnter={(e) => (e.target.style.color = "#7b2ff7")}
+                onMouseLeave={(e) => (e.target.style.color = "#1d1d1f")}
               >
                 {link.label}
               </Link>
             </motion.div>
           ))}
           <motion.button
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 4px 15px rgba(239, 68, 68, 0.4)"
-            }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleLogout}
             style={{
               padding: "8px 16px",
               borderRadius: "8px",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
-              background: "rgba(239, 68, 68, 0.1)",
-              color: "#fca5a5",
+              border: "none",
+              backgroundColor: "#ff4d4d",
+              color: "#fff",
               fontWeight: "600",
               cursor: "pointer",
               fontSize: "0.9rem",
-              transition: "all 0.3s ease",
             }}
           >
             Logout
