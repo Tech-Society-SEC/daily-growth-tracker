@@ -9,9 +9,9 @@ import AdventureMap from "./AdventureMap.jsx";
 import Game from "./Game";
 import AIAssistant from "./AIAssistant";
 import LevelRoadmap from "./LevelRoadmap";
-import { onAuthStateChange } from "./firebase";
+// Removed Firebase import - using JWT auth instead
 
-function AnimatedRoutes({ user, setUser }) {
+function AnimatedRoutes({ user, setUser, token, setToken }) {
   const location = useLocation();
 
   const pageVariants = {
@@ -54,7 +54,7 @@ function AnimatedRoutes({ user, setUser }) {
               animate="in"
               exit="out"
             >
-              <Dashboard user={user} setUser={setUser} />
+              <Dashboard user={user} setUser={setUser} token={token} setToken={setToken} />
             </motion.div>
           }
         />
@@ -82,7 +82,7 @@ function AnimatedRoutes({ user, setUser }) {
               animate="in"
               exit="out"
             >
-              <Auth setUser={setUser} />
+              <Auth setUser={setUser} setToken={setToken} />
             </motion.div>
           }
         />
@@ -265,31 +265,42 @@ function AnimatedRoutes({ user, setUser }) {
 
 function App() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false); // Set to false since no auth required
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Optional: Listen to Firebase auth state changes (but don't enforce login)
+  // Check for existing token on app load
   useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-      } else {
-        setUser(null);
-      }
+    const existingToken = localStorage.getItem('token');
+    if (existingToken) {
+      // Verify token with backend
+      fetch('http://localhost:5000/api/auth/verify', {
+        headers: { Authorization: `Bearer ${existingToken}` }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.valid) {
+          setUser(data.user);
+          setToken(existingToken);
+        } else {
+          localStorage.removeItem('token');
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+    } else {
       setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
   }, []);
 
-  // Optional logout function (users can still logout if they want)
-  const handleLogout = async () => {
-    try {
-      const { logout } = await import("./firebase");
-      await logout();
-      setUser(null);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setToken(null);
   };
 
   if (loading) {
@@ -401,7 +412,7 @@ function App() {
       )}
 
       {/* Routes - All accessible without authentication */}
-      <AnimatedRoutes user={user} setUser={setUser} />
+      <AnimatedRoutes user={user} setUser={setUser} token={token} setToken={setToken} />
     </Router>
   );
 }

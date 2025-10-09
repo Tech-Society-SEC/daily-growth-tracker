@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTrophy, FaStar, FaCrown, FaFire, FaBolt, FaGem } from 'react-icons/fa';
-import { getUserProfile, updateUserProfile } from './firebase';
+import { getUserProfile, updateUserProfile } from './firebase'; // Assuming you have this file
 
 const LEVELS = [
   { id: 1, name: "Sprout", xpRequired: 250, icon: "🌱", color: "#10b981" },
@@ -136,17 +136,22 @@ function LevelRoadmap({ user }) {
   };
 
   const getProgressPercentage = () => {
-    const currentLevel = getCurrentLevelInfo();
-    const nextLevel = getNextLevelInfo();
+    const currentLevelInfo = getCurrentLevelInfo();
+    const nextLevelInfo = getNextLevelInfo();
 
-    // Calculate XP progress within current level
-    const currentLevelStartXP = (userLevel - 1) * 250;
-    const nextLevelStartXP = userLevel * 250;
-    const xpInCurrentLevel = Math.max(0, userXP - currentLevelStartXP);
-    const xpNeededForNextLevel = nextLevelStartXP - currentLevelStartXP;
+    if (userLevel >= LEVELS.length) {
+        return 100;
+    }
 
-    return Math.min((xpInCurrentLevel / xpNeededForNextLevel) * 100, 100);
+    const currentLevelStartXP = (currentLevelInfo.id - 1) * 250;
+    const xpNeededForNextLevel = nextLevelInfo.xpRequired - currentLevelStartXP;
+    const xpInCurrentLevel = userXP - currentLevelStartXP;
+
+    if (xpNeededForNextLevel === 0) return 100;
+
+    return Math.min((xpInCurrentLevel / 250) * 100, 100);
   };
+
 
   if (loading) {
     return (
